@@ -16,6 +16,7 @@ from scheme_data import (
     get_walkthrough,
     get_languages,
     get_step,
+    get_all_steps,
     check_eligibility,
     PMUY_SCHEME_FACTS
 )
@@ -52,6 +53,16 @@ def api_scheme():
     lang = request.args.get("lang", "hi")
     return jsonify(get_scheme_data(lang=lang))
 
+@app.route("/api/steps", methods=["GET"])
+def api_steps():
+    """Returns the 5 official PMUY application steps in the requested language."""
+    lang = request.args.get("lang", "hi")
+    return jsonify({
+        "status": "success",
+        "lang": lang,
+        "steps": get_all_steps(lang=lang)
+    })
+
 @app.route("/api/walkthrough", methods=["GET"])
 def api_walkthrough():
     """Returns the step-by-step 1-click sample walkthrough in the requested language."""
@@ -67,7 +78,7 @@ def api_walkthrough():
 def api_step(step_num=None):
     """
     Returns official PMUY step guidance in English and translated into target language
-    using translate_step() with safe fallback.
+    using pre-translated authoritative steps with translate_step() fallback.
     """
     if step_num is None:
         if request.method == "POST":
@@ -80,8 +91,17 @@ def api_step(step_num=None):
     else:
         lang = request.args.get("lang", "en")
 
-    english_step = get_step(step_num)
-    translated_step = translate_step(english_step, lang) if lang != "en" else english_step
+    english_step = get_step(step_num, "en")
+    if lang == "en":
+        translated_step = english_step
+    else:
+        # 1. First retrieve authoritative native step guidance (guarantees no English fallback)
+        localized_step = get_step(step_num, lang)
+        if localized_step and not localized_step.startswith("Invalid step number") and localized_step != english_step:
+            translated_step = localized_step
+        else:
+            # 2. Dynamic Gemini translation fallback
+            translated_step = translate_step(english_step, lang)
 
     return jsonify({
         "status": "success",

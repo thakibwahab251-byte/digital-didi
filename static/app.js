@@ -8,19 +8,24 @@
  * Implements:
  * 1. Web Speech Synthesis (TTS in selected Indian language)
  * 2. Web Speech Recognition (STT in selected Indian language)
- * 3. Icon/Flag Language Picker
- * 4. 1-Click Automated Sample Walkthrough in chosen language
- * 5. High-contrast large touch button navigation
+ * 3. Icon/Flag & Script Badge Language Picker
+ * 4. 5-Step Application Selector (Select Each Step in Own Language)
+ * 5. 1-Click Automated Sample Walkthrough in chosen language
+ * 6. High-contrast large touch button navigation
  */
 
 (function () {
     'use strict';
 
     // Application State
+    const initialLang = document.documentElement.lang || (new URLSearchParams(window.location.search)).get('lang') || 'hi';
+
     const state = {
-        currentLang: 'hi',
+        currentLang: initialLang,
         currentSpeechCode: 'hi-IN',
-        currentStage: 'welcome',
+        currentStage: 'step_detail',
+        currentMode: 'steps', // 'steps' or 'check'
+        currentStep: 1,
         isSoundEnabled: true,
         isSpeaking: false,
         isListening: false,
@@ -33,9 +38,12 @@
 
     // DOM Elements Cache
     const elements = {
+        pageTitle: document.getElementById('page-title'),
         didiMessage: document.getElementById('didi-message'),
         speakingWave: document.getElementById('speaking-wave'),
         btnReplay: document.getElementById('btn-replay-audio'),
+        lblBtnReplay: document.getElementById('lbl-btn-replay'),
+        lblDidiSpeaking: document.getElementById('lbl-didi-speaking'),
         btnSoundToggle: document.getElementById('btn-sound-toggle'),
         soundIcon: document.getElementById('sound-icon'),
         lblSoundStatus: document.getElementById('lbl-sound-status'),
@@ -53,7 +61,31 @@
         btnRetryIneligible: document.getElementById('btn-retry-ineligible'),
         quickChips: document.getElementById('quick-chips'),
         docCards: document.querySelectorAll('.doc-card'),
-        langButtons: document.querySelectorAll('.lang-btn')
+        langButtons: document.querySelectorAll('.lang-btn'),
+
+        // Step Navigation Elements
+        btnModeSteps: document.getElementById('btn-mode-steps'),
+        btnModeCheck: document.getElementById('btn-mode-check'),
+        lblModeSteps: document.getElementById('lbl-mode-steps'),
+        lblModeCheck: document.getElementById('lbl-mode-check'),
+        stepButtons: document.querySelectorAll('.step-btn'),
+        stageStepDetail: document.getElementById('stage-step-detail'),
+        lblStepNumBadge: document.getElementById('lbl-step-num-badge'),
+        lblStepCounterTag: document.getElementById('lbl-step-counter-tag'),
+        lblStepBadge: document.getElementById('lbl-step-badge'),
+        lblStepTitle: document.getElementById('lbl-step-title'),
+        lblStepSpoken: document.getElementById('lbl-step-spoken'),
+        stepHeroIconDisplay: document.getElementById('step-hero-icon-display'),
+        stepBulletsContainer: document.getElementById('step-bullets-container'),
+        btnPrevStep: document.getElementById('btn-prev-step'),
+        btnNextStep: document.getElementById('btn-next-step'),
+        lblBtnPrevStep: document.getElementById('lbl-btn-prev-step'),
+        lblBtnNextStep: document.getElementById('lbl-btn-next-step'),
+        btnStepAudio: document.getElementById('btn-step-audio'),
+        lblBtnStepAudio: document.getElementById('lbl-btn-step-audio'),
+        btnStepToCheck: document.getElementById('btn-step-to-check'),
+        lblBtnCheckEligibility: document.getElementById('lbl-btn-check-eligibility'),
+        stepDots: document.querySelectorAll('.step-dot')
     };
 
     // =========================================================================
@@ -82,7 +114,6 @@
             const now = ctx.currentTime;
 
             if (type === 'tap') {
-                // Soft click chime (480Hz gentle pluck, 0.08s)
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = 'sine';
@@ -95,7 +126,6 @@
                 osc.start(now);
                 osc.stop(now + 0.08);
             } else if (type === 'mic_start') {
-                // Ascending two-note chime (440Hz -> 660Hz) to signal mic listening
                 [440, 660].forEach((freq, idx) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -109,7 +139,6 @@
                     osc.stop(now + (idx + 1) * 0.11);
                 });
             } else if (type === 'mic_stop') {
-                // Soft descending tone (550Hz -> 380Hz)
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = 'sine';
@@ -122,7 +151,6 @@
                 osc.start(now);
                 osc.stop(now + 0.12);
             } else if (type === 'success') {
-                // Cheerful 3-note celebration arpeggio (C5 -> E5 -> G5: 523Hz -> 659Hz -> 784Hz)
                 [523.25, 659.25, 783.99].forEach((freq, idx) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -136,7 +164,6 @@
                     osc.stop(now + idx * 0.13 + 0.35);
                 });
             } else if (type === 'alert') {
-                // Gentle cautionary two-tone (392Hz -> 330Hz)
                 [392, 329.63].forEach((freq, idx) => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
@@ -150,7 +177,6 @@
                     osc.stop(now + idx * 0.15 + 0.22);
                 });
             } else if (type === 'lang_change') {
-                // Soft waterdrop-style harmonic chime (587Hz -> 880Hz)
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
                 osc.type = 'sine';
@@ -164,7 +190,7 @@
                 osc.stop(now + 0.18);
             }
         } catch (e) {
-            // AudioContext gracefully bypassed if uninitialized
+            // Graceful bypass
         }
     }
 
@@ -237,7 +263,6 @@
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = state.currentSpeechCode;
 
-        // Fine-tuned cadence and pitch per Indian language for respectful Didi persona
         const cadenceMap = {
             hi: { rate: 0.90, pitch: 1.05 },
             ta: { rate: 0.88, pitch: 1.02 },
@@ -269,7 +294,6 @@
             if (callback) callback();
         };
 
-        // Safety watchdog: prevent utterance lock on browsers that hang speech synthesis
         const wordCount = text.split(/\s+/).length;
         const estimatedDurationMs = Math.max(2500, wordCount * 450);
         const watchdog = setTimeout(finish, estimatedDurationMs + 4000);
@@ -384,12 +408,105 @@
     }
 
     // =========================================================================
-    // Multilingual Language Switcher
+    // Step Selector (Select Each Step in Own Language - 11 Languages)
+    // =========================================================================
+    function selectStep(stepNum, triggerVoice = true) {
+        stepNum = Math.max(1, Math.min(5, parseInt(stepNum) || 1));
+        state.currentStep = stepNum;
+        state.currentMode = 'steps';
+        state.currentStage = 'step_detail';
+
+        // Update mode toggle buttons
+        if (elements.btnModeSteps) elements.btnModeSteps.classList.add('active');
+        if (elements.btnModeCheck) elements.btnModeCheck.classList.remove('active');
+
+        // Update step pills active state
+        document.querySelectorAll('.step-btn').forEach(btn => {
+            const num = parseInt(btn.getAttribute('data-step'));
+            if (num === stepNum) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+            } else {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            }
+        });
+
+        // Update step dots
+        document.querySelectorAll('.step-dot').forEach(dot => {
+            const num = parseInt(dot.getAttribute('data-step'));
+            if (num === stepNum) {
+                dot.classList.add('active');
+            } else {
+                dot.classList.remove('active');
+            }
+        });
+
+        // Ensure step detail stage is displayed
+        document.querySelectorAll('.stage-view').forEach(view => {
+            view.classList.remove('active');
+        });
+        if (elements.stageStepDetail) {
+            elements.stageStepDetail.classList.add('active');
+        }
+
+        // Retrieve localized step from state
+        const steps = state.schemeData?.steps || [];
+        const step = steps[stepNum - 1] || null;
+        const t = state.schemeData?.texts || {};
+
+        if (step) {
+            if (elements.lblStepNumBadge) elements.lblStepNumBadge.textContent = step.step_number;
+            if (elements.lblStepCounterTag) elements.lblStepCounterTag.textContent = `${t.step_counter_label || 'चरण'} ${step.step_number} / 5`;
+            if (elements.lblStepBadge) elements.lblStepBadge.textContent = step.badge;
+            if (elements.lblStepTitle) elements.lblStepTitle.textContent = step.title;
+            if (elements.lblStepSpoken) elements.lblStepSpoken.textContent = step.spoken_text;
+            if (elements.stepHeroIconDisplay) elements.stepHeroIconDisplay.textContent = step.icon;
+
+            // Render bullet points
+            if (elements.stepBulletsContainer && step.details) {
+                elements.stepBulletsContainer.innerHTML = step.details.map(item => `
+                    <div class="step-bullet-item">
+                        <span class="bullet-tick">✔️</span>
+                        <span class="bullet-text">${item}</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Update prev / next disabled states
+        if (elements.btnPrevStep) elements.btnPrevStep.disabled = (stepNum <= 1);
+        if (elements.btnNextStep) elements.btnNextStep.disabled = (stepNum >= 5);
+
+        // Speak guidance if sound is enabled
+        if (triggerVoice && step) {
+            updateDialogue(step.spoken_text, true);
+        }
+    }
+
+    function switchMode(mode) {
+        playAudioCue('tap');
+        state.currentMode = mode;
+
+        if (mode === 'steps') {
+            if (elements.btnModeSteps) elements.btnModeSteps.classList.add('active');
+            if (elements.btnModeCheck) elements.btnModeCheck.classList.remove('active');
+            selectStep(state.currentStep, true);
+        } else {
+            if (elements.btnModeCheck) elements.btnModeCheck.classList.add('active');
+            if (elements.btnModeSteps) elements.btnModeSteps.classList.remove('active');
+            navigateToStage('welcome', true);
+        }
+    }
+
+    // =========================================================================
+    // Multilingual Language Switcher (Zero-Glitch, Synchronized 11 Languages)
     // =========================================================================
     async function switchLanguage(langCode, speechCode) {
         playAudioCue('lang_change');
         state.currentLang = langCode;
         state.currentSpeechCode = speechCode;
+        document.documentElement.lang = langCode;
 
         // Update active class on buttons
         elements.langButtons.forEach(btn => {
@@ -412,8 +529,12 @@
             state.schemeData = data;
             applyLocalizedTexts(data.texts);
 
-            // Greet in the newly selected language
-            updateDialogue(data.texts.didi_greeting, true);
+            // Re-render and speak current active view in newly selected language
+            if (state.currentMode === 'steps' || state.currentStage === 'step_detail') {
+                selectStep(state.currentStep, true);
+            } else {
+                navigateToStage(state.currentStage, true);
+            }
         } catch (err) {
             console.error('Failed to load language data:', err);
         }
@@ -422,19 +543,40 @@
     function applyLocalizedTexts(t) {
         if (!t) return;
 
-        // Update UI IDs
+        // Update Document Title
+        if (t.app_title) {
+            document.title = `${t.app_title} | Digital Didi`;
+            if (elements.pageTitle) {
+                elements.pageTitle.textContent = `${t.app_title} | Digital Didi - मुफ़्त गैस योजना साथी`;
+            }
+        }
+
+        // Update Sound status label
+        if (elements.lblSoundStatus) {
+            elements.lblSoundStatus.textContent = state.isSoundEnabled ? (t.lbl_sound_on || 'आवाज़ चालू') : (t.lbl_sound_off || 'आवाज़ बंद');
+        }
+
+        // Update all UI IDs
         const map = {
             'lbl-app-title': t.app_title,
             'lbl-app-subtitle': t.app_subtitle,
             'lbl-btn-demo': t.btn_demo,
+            'lbl-didi-speaking': t.didi_speaking,
+            'lbl-btn-replay': t.btn_replay,
+            'lbl-mode-steps': t.nav_steps_mode,
+            'lbl-mode-check': t.nav_check_mode,
+            'lbl-step-gov-tag': t.gov_tag,
+            'lbl-gov-tag': t.gov_tag,
+            'lbl-step-free-tag': t.free_tag,
+            'lbl-free-tag': t.free_tag,
             'lbl-scheme-name': t.scheme_name,
             'lbl-scheme-tagline': t.scheme_tagline,
-            'lbl-benefit-1-title': t.benefits[0].title,
-            'lbl-benefit-1-badge': t.benefits[0].badge,
-            'lbl-benefit-2-title': t.benefits[1].title,
-            'lbl-benefit-2-badge': t.benefits[1].badge,
-            'lbl-benefit-3-title': t.benefits[2].title,
-            'lbl-benefit-3-badge': t.benefits[2].badge,
+            'lbl-benefit-1-title': t.benefits?.[0]?.title,
+            'lbl-benefit-1-badge': t.benefits?.[0]?.badge,
+            'lbl-benefit-2-title': t.benefits?.[1]?.title,
+            'lbl-benefit-2-badge': t.benefits?.[1]?.badge,
+            'lbl-benefit-3-title': t.benefits?.[2]?.title,
+            'lbl-benefit-3-badge': t.benefits?.[2]?.badge,
             'lbl-btn-start': t.btn_start,
             'lbl-q1-text': t.q1_text,
             'lbl-q1-hint': t.q1_hint,
@@ -458,6 +600,12 @@
             'lbl-doc-ration-desc': t.doc_ration_desc,
             'lbl-doc-passbook-title': t.doc_passbook_title,
             'lbl-doc-passbook-desc': t.doc_passbook_desc,
+            'lbl-doc-listen-tag-1': t.doc_listen_tag,
+            'lbl-doc-listen-tag-2': t.doc_listen_tag,
+            'lbl-doc-listen-tag-3': t.doc_listen_tag,
+            'lbl-doc-ready-tag-1': t.doc_ready_tag,
+            'lbl-doc-ready-tag-2': t.doc_ready_tag,
+            'lbl-doc-ready-tag-3': t.doc_ready_tag,
             'lbl-btn-to-where': t.btn_to_where,
             'lbl-where-title': t.where_title,
             'lbl-where-agency-title': t.where_agency_title,
@@ -465,10 +613,16 @@
             'lbl-where-csc-title': t.where_csc_title,
             'lbl-where-csc-desc': t.where_csc_desc,
             'lbl-safety-alert': t.safety_alert,
+            'lbl-helpline-tag': t.helpline_label,
+            'lbl-emergency-tag': t.emergency_label,
             'lbl-btn-restart': t.btn_restart,
             'lbl-btn-retry': t.btn_retry,
             'lbl-ineligible-text': t.ineligible_text,
-            'mic-status-label': t.mic_tap
+            'mic-status-label': t.mic_tap,
+            'lbl-btn-prev-step': t.btn_prev_step,
+            'lbl-btn-next-step': t.btn_next_step,
+            'lbl-btn-step-audio': t.btn_step_audio,
+            'lbl-btn-check-eligibility': t.btn_check_eligibility
         };
 
         for (const [elemId, textValue] of Object.entries(map)) {
@@ -476,6 +630,21 @@
             if (el && textValue) {
                 el.textContent = textValue;
             }
+        }
+
+        // Update Step Pills titles
+        if (state.schemeData?.steps) {
+            state.schemeData.steps.forEach(st => {
+                const el = document.getElementById(`lbl-pill-title-${st.step_number}`);
+                if (el) el.textContent = st.short_title;
+            });
+        }
+
+        // Update Quick voice helper chips dynamically
+        if (t.quick_chips && elements.quickChips) {
+            elements.quickChips.innerHTML = t.quick_chips.map(c => `
+                <button class="chip" data-query="${c.query}">${c.label}</button>
+            `).join('');
         }
     }
 
@@ -520,6 +689,12 @@
     // =========================================================================
     function navigateToStage(stageName, triggerVoice = true) {
         state.currentStage = stageName;
+        state.currentMode = (stageName === 'step_detail') ? 'steps' : 'check';
+
+        if (stageName !== 'step_detail') {
+            if (elements.btnModeCheck) elements.btnModeCheck.classList.add('active');
+            if (elements.btnModeSteps) elements.btnModeSteps.classList.remove('active');
+        }
 
         document.querySelectorAll('.stage-view').forEach(view => {
             view.classList.remove('active');
@@ -612,7 +787,11 @@
             const step = steps[currentStepIdx];
             currentStepIdx++;
 
-            if (step.active_card === 'welcome') {
+            if (step.active_card === 'step_detail') {
+                selectStep(step.step_number || 1, false);
+                const pill = document.getElementById(`btn-step-pill-${step.step_number || 1}`);
+                if (pill) pill.classList.add('demo-focus');
+            } else if (step.active_card === 'welcome') {
                 navigateToStage('welcome', false);
                 if (elements.btnStartCheck) elements.btnStartCheck.classList.add('demo-focus');
             } else if (step.active_card === 'question_existing') {
@@ -633,7 +812,7 @@
                 }
             } else if (step.active_card === 'where_to_go') {
                 navigateToStage('where_to_go', false);
-                const whereCards = document.querySelectorAll('.agency-card');
+                const whereCards = document.querySelectorAll('.agency-box, .csc-box');
                 if (whereCards && whereCards.length) {
                     whereCards.forEach(c => c.classList.add('demo-focus'));
                 }
@@ -641,7 +820,7 @@
 
             updateDialogue(step.didi_speech, true, () => {
                 if (state.isDemoRunning) {
-                    state.walkthroughTimer = setTimeout(runNextStep, 1800);
+                    state.walkthroughTimer = setTimeout(runNextStep, 1900);
                 }
             });
         }
@@ -676,22 +855,88 @@
             });
         });
 
+        // Mode Toggles
+        if (elements.btnModeSteps) {
+            elements.btnModeSteps.addEventListener('click', () => switchMode('steps'));
+        }
+        if (elements.btnModeCheck) {
+            elements.btnModeCheck.addEventListener('click', () => switchMode('check'));
+        }
+
+        // Step Buttons (1 to 5)
+        elements.stepButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                playAudioCue('tap');
+                const stepNum = parseInt(btn.getAttribute('data-step')) || 1;
+                selectStep(stepNum, true);
+            });
+        });
+
+        // Step Dots
+        elements.stepDots.forEach(dot => {
+            dot.addEventListener('click', () => {
+                playAudioCue('tap');
+                const stepNum = parseInt(dot.getAttribute('data-step')) || 1;
+                selectStep(stepNum, true);
+            });
+        });
+
+        // Previous & Next Step Navigation
+        if (elements.btnPrevStep) {
+            elements.btnPrevStep.addEventListener('click', () => {
+                if (state.currentStep > 1) {
+                    playAudioCue('tap');
+                    selectStep(state.currentStep - 1, true);
+                }
+            });
+        }
+
+        if (elements.btnNextStep) {
+            elements.btnNextStep.addEventListener('click', () => {
+                if (state.currentStep < 5) {
+                    playAudioCue('tap');
+                    selectStep(state.currentStep + 1, true);
+                }
+            });
+        }
+
+        // Step Audio Replay
+        if (elements.btnStepAudio) {
+            elements.btnStepAudio.addEventListener('click', () => {
+                playAudioCue('tap');
+                const step = state.schemeData?.steps?.[state.currentStep - 1];
+                if (step) {
+                    updateDialogue(step.spoken_text, true);
+                }
+            });
+        }
+
+        // Step to Check Eligibility CTA
+        if (elements.btnStepToCheck) {
+            elements.btnStepToCheck.addEventListener('click', () => {
+                playAudioCue('tap');
+                switchMode('check');
+                navigateToStage('welcome', true);
+            });
+        }
+
         // 1-Click Demo
         elements.btnWalkthrough.addEventListener('click', startWalkthroughDemo);
 
         // Sound Toggle
         elements.btnSoundToggle.addEventListener('click', () => {
             state.isSoundEnabled = !state.isSoundEnabled;
+            const t = state.schemeData?.texts || {};
             if (state.isSoundEnabled) {
                 elements.btnSoundToggle.classList.remove('muted');
                 elements.soundIcon.textContent = '🔊';
-                elements.lblSoundStatus.textContent = 'आवाज़ चालू';
+                elements.lblSoundStatus.textContent = t.lbl_sound_on || 'आवाज़ चालू';
                 playAudioCue('tap');
                 speakText(state.lastSpokenText || 'आवाज़ चालू है।');
             } else {
                 elements.btnSoundToggle.classList.add('muted');
                 elements.soundIcon.textContent = '🔇';
-                elements.lblSoundStatus.textContent = 'आवाज़ बंद';
+                elements.lblSoundStatus.textContent = t.lbl_sound_off || 'आवाज़ बंद';
                 window.speechSynthesis.cancel();
             }
         });
@@ -772,7 +1017,7 @@
             });
         });
 
-        // Quick voice helper chips
+        // Quick voice helper chips (delegated)
         elements.quickChips.addEventListener('click', (e) => {
             const chip = e.target.closest('.chip');
             if (chip) {
@@ -784,7 +1029,7 @@
 
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = () => {
-                // Voices ready
+                populateVoices();
             };
         }
     }
@@ -793,6 +1038,12 @@
     // Initialization on Page Load
     // =========================================================================
     document.addEventListener('DOMContentLoaded', async () => {
+        // Read initial active language button
+        const activeBtn = document.querySelector('.lang-btn.active') || document.querySelector(`.lang-btn[data-lang="${state.currentLang}"]`);
+        if (activeBtn) {
+            state.currentSpeechCode = activeBtn.getAttribute('data-speech') || 'hi-IN';
+        }
+
         setupSpeechRecognition();
         initEvents();
 
@@ -801,15 +1052,15 @@
             const resp = await fetch(`/api/scheme?lang=${state.currentLang}`);
             const data = await resp.json();
             state.schemeData = data;
+            applyLocalizedTexts(data.texts);
+
+            // Start on Step 1 with full visual details and voice
+            setTimeout(() => {
+                selectStep(1, true);
+            }, 500);
         } catch (e) {
             console.warn('Initial scheme load failed:', e);
         }
-
-        // Voice greeting after short delay
-        setTimeout(() => {
-            const greeting = state.schemeData?.texts?.didi_greeting || 'नमस्ते दीदी! मैं आपकी डिजिटल दीदी हूँ।';
-            updateDialogue(greeting, true);
-        }, 600);
     });
 
 })();

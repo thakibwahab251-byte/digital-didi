@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ scheme.texts.app_title }} | Digital Didi - ग्रामीण महिलाओं के लिए मुफ़्त गैस योजना साथी</title>
+    <title id="page-title">{{ scheme.texts.app_title }} | Digital Didi - ग्रामीण महिलाओं के लिए मुफ़्त गैस योजना साथी</title>
     <meta name="description"
         content="डिजिटल दीदी (Digital Didi) - 11 भारतीय भाषाओं में बिना किसी तकनीकी ज्ञान और अंग्रेज़ी के, केवल आवाज़ और बड़े चित्रों द्वारा मुफ़्त गैस कनेक्शन का लाभ पाएं।">
     <!-- Google Fonts for multilingual Devanagari, Dravidian, and Indic scripts -->
@@ -49,18 +49,18 @@
                 <button id="btn-sound-toggle" class="btn-sound-control active" title="Sound Toggle"
                     aria-label="ध्वनि नियंत्रण">
                     <span id="sound-icon" class="sound-icon">🔊</span>
-                    <span class="sound-label" id="lbl-sound-status">आवाज़ चालू</span>
+                    <span class="sound-label" id="lbl-sound-status">{{ scheme.texts.lbl_sound_on }}</span>
                 </button>
             </div>
         </header>
 
-        <!-- Flag / Script Icon Language Picker Ribbon -->
+        <!-- Distinct Native Script Badge Language Picker Ribbon -->
         <nav class="language-ribbon" aria-label="भाषा चुनें / Select Language">
             <div class="lang-scroll-track" id="lang-track">
                 {% for lang in languages %}
                 <button class="lang-btn {% if lang.code == scheme.lang %}active{% endif %}" data-lang="{{ lang.code }}"
                     data-speech="{{ lang.speech_code }}" title="{{ lang.name }}">
-                    <span class="lang-flag">{{ lang.flag }}</span>
+                    <span class="lang-script-badge">{{ lang.badge }}</span>
                     <span class="lang-native">{{ lang.native }}</span>
                 </button>
                 {% endfor %}
@@ -79,10 +79,10 @@
             </div>
             <div class="didi-dialogue-wrap">
                 <div class="didi-tag">
-                    <span class="didi-name" id="lbl-didi-speaking">दीदी बोल रही हैं:</span>
+                    <span class="didi-name" id="lbl-didi-speaking">{{ scheme.texts.didi_speaking }}</span>
                     <button id="btn-replay-audio" class="btn-replay-mini" title="दोबारा सुनें"
                         aria-label="आवाज़ दोबारा सुनें">
-                        🔊 दोबारा सुनें
+                        <span id="lbl-btn-replay">{{ scheme.texts.btn_replay }}</span>
                     </button>
                 </div>
                 <div class="didi-message" id="didi-message">
@@ -91,15 +91,103 @@
             </div>
         </section>
 
+        <!-- Step Navigation & Mode Switcher Bar -->
+        <div class="step-nav-bar" id="step-nav-bar">
+            <div class="mode-toggle-group">
+                <button id="btn-mode-steps" class="btn-mode-toggle active" data-mode="steps">
+                    <span class="mode-icon">📋</span>
+                    <span class="mode-text" id="lbl-mode-steps">{{ scheme.texts.nav_steps_mode }}</span>
+                </button>
+                <button id="btn-mode-check" class="btn-mode-toggle" data-mode="check">
+                    <span class="mode-icon">🔍</span>
+                    <span class="mode-text" id="lbl-mode-check">{{ scheme.texts.nav_check_mode }}</span>
+                </button>
+            </div>
+
+            <!-- 5 Large Step Buttons (Select Each Step in Own Language) -->
+            <div class="steps-ribbon" id="steps-ribbon" role="tablist" aria-label="आवेदन के 5 चरण">
+                {% for st in scheme.steps %}
+                <button class="step-btn {% if loop.first %}active{% endif %}" id="btn-step-pill-{{ st.step_number }}"
+                    data-step="{{ st.step_number }}" role="tab" aria-selected="{% if loop.first %}true{% else %}false{% endif %}">
+                    <span class="step-pill-num">{{ st.step_number }}</span>
+                    <span class="step-pill-icon">{{ st.icon }}</span>
+                    <span class="step-pill-text" id="lbl-pill-title-{{ st.step_number }}">{{ st.short_title }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+
         <!-- Main Dynamic Stage Cards Area -->
         <main class="main-stage" id="main-stage">
 
+            <!-- STAGE 0: Dedicated Step Detail Card (Steps 1 to 5) -->
+            <div class="stage-view active" id="stage-step-detail">
+                <div class="step-card-container">
+                    <div class="step-badge-row">
+                        <span class="gov-tag" id="lbl-step-gov-tag">{{ scheme.texts.gov_tag }}</span>
+                        <span class="step-counter-tag" id="lbl-step-counter-tag">{{ scheme.texts.step_counter_label }} 1 / 5</span>
+                        <span class="free-tag" id="lbl-step-free-tag">{{ scheme.texts.free_tag }}</span>
+                    </div>
+
+                    <div class="step-hero-visual-wrap">
+                        <div class="step-hero-icon-display" id="step-hero-icon-display">🪪</div>
+                        <span class="step-hero-badge" id="lbl-step-badge">दस्तावेज़</span>
+                    </div>
+
+                    <h2 class="step-heading" id="lbl-step-title">{{ scheme.steps[0].title if scheme.steps else "चरण 1: ज़रूरी कागज़ात इकट्ठा करें" }}</h2>
+                    <p class="step-instruction" id="lbl-step-spoken">{{ scheme.steps[0].spoken_text if scheme.steps else "" }}</p>
+
+                    <div class="step-bullets-container" id="step-bullets-container">
+                        {% if scheme.steps and scheme.steps[0].details %}
+                        {% for d in scheme.steps[0].details %}
+                        <div class="step-bullet-item">
+                            <span class="bullet-tick">✔️</span>
+                            <span class="bullet-text">{{ d }}</span>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    <!-- Step Audio Action -->
+                    <div class="step-audio-action">
+                        <button id="btn-step-audio" class="btn-giant btn-audio-step">
+                            <span class="btn-giant-icon">🔊</span>
+                            <span class="btn-giant-text" id="lbl-btn-step-audio">{{ scheme.texts.btn_step_audio }}</span>
+                        </button>
+                    </div>
+
+                    <!-- Previous & Next Step Controls -->
+                    <div class="step-nav-footer">
+                        <button id="btn-prev-step" class="btn-step-nav" disabled>
+                            <span id="lbl-btn-prev-step">{{ scheme.texts.btn_prev_step }}</span>
+                        </button>
+                        <div class="step-dots-indicator" id="step-dots-indicator">
+                            <span class="step-dot active" data-step="1">1</span>
+                            <span class="step-dot" data-step="2">2</span>
+                            <span class="step-dot" data-step="3">3</span>
+                            <span class="step-dot" data-step="4">4</span>
+                            <span class="step-dot" data-step="5">5</span>
+                        </div>
+                        <button id="btn-next-step" class="btn-step-nav">
+                            <span id="lbl-btn-next-step">{{ scheme.texts.btn_next_step }}</span>
+                        </button>
+                    </div>
+
+                    <div class="step-check-cta">
+                        <button id="btn-step-to-check" class="btn-giant btn-check-eligibility">
+                            <span class="btn-giant-icon">👉</span>
+                            <span class="btn-giant-text" id="lbl-btn-check-eligibility">{{ scheme.texts.btn_check_eligibility }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- STAGE 1: Welcome & Scheme Hero -->
-            <div class="stage-view active" id="stage-welcome">
+            <div class="stage-view" id="stage-welcome">
                 <div class="hero-card">
                     <div class="scheme-badge-row">
-                        <span class="gov-tag">भारत सरकार • Govt of India</span>
-                        <span class="free-tag">₹0 मुफ़्त</span>
+                        <span class="gov-tag" id="lbl-gov-tag">{{ scheme.texts.gov_tag }}</span>
+                        <span class="free-tag" id="lbl-free-tag">{{ scheme.texts.free_tag }}</span>
                     </div>
                     <h2 class="scheme-heading" id="lbl-scheme-name">{{ scheme.texts.scheme_name }}</h2>
                     <p class="scheme-subtext" id="lbl-scheme-tagline">{{ scheme.texts.scheme_tagline }}</p>
@@ -172,7 +260,7 @@
             <!-- STAGE 2: Question 1 - Existing Connection -->
             <div class="stage-view" id="stage-question-existing">
                 <div class="question-card">
-                    <div class="step-counter">1 / 2</div>
+                    <div class="step-counter" id="lbl-q1-step-counter">1 / 2</div>
                     <div class="question-visual-icon">
                         <span class="big-emoji">🔥</span>
                     </div>
@@ -200,7 +288,7 @@
             <!-- STAGE 3: Question 2 - Ration Card -->
             <div class="stage-view" id="stage-question-ration">
                 <div class="question-card">
-                    <div class="step-counter">2 / 2</div>
+                    <div class="step-counter" id="lbl-q2-step-counter">2 / 2</div>
                     <div class="question-visual-icon">
                         <span class="big-emoji">📜</span>
                     </div>
@@ -258,8 +346,8 @@
                             <div class="doc-title" id="lbl-doc-aadhaar-title">{{ scheme.texts.doc_aadhaar_title }}</div>
                             <div class="doc-desc" id="lbl-doc-aadhaar-desc">{{ scheme.texts.doc_aadhaar_desc }}</div>
                             <div class="doc-action-strip">
-                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
-                                <span class="check-tick">✔️ तैयार रखें</span>
+                                <span class="audio-listen-tag" id="lbl-doc-listen-tag-1">{{ scheme.texts.doc_listen_tag }}</span>
+                                <span class="check-tick" id="lbl-doc-ready-tag-1">{{ scheme.texts.doc_ready_tag }}</span>
                             </div>
                         </div>
 
@@ -277,8 +365,8 @@
                             <div class="doc-title" id="lbl-doc-ration-title">{{ scheme.texts.doc_ration_title }}</div>
                             <div class="doc-desc" id="lbl-doc-ration-desc">{{ scheme.texts.doc_ration_desc }}</div>
                             <div class="doc-action-strip">
-                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
-                                <span class="check-tick">✔️ तैयार रखें</span>
+                                <span class="audio-listen-tag" id="lbl-doc-listen-tag-2">{{ scheme.texts.doc_listen_tag }}</span>
+                                <span class="check-tick" id="lbl-doc-ready-tag-2">{{ scheme.texts.doc_ready_tag }}</span>
                             </div>
                         </div>
 
@@ -297,8 +385,8 @@
                             </div>
                             <div class="doc-desc" id="lbl-doc-passbook-desc">{{ scheme.texts.doc_passbook_desc }}</div>
                             <div class="doc-action-strip">
-                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
-                                <span class="check-tick">✔️ तैयार रखें</span>
+                                <span class="audio-listen-tag" id="lbl-doc-listen-tag-3">{{ scheme.texts.doc_listen_tag }}</span>
+                                <span class="check-tick" id="lbl-doc-ready-tag-3">{{ scheme.texts.doc_ready_tag }}</span>
                             </div>
                         </div>
                     </div>
@@ -345,11 +433,11 @@
                     <!-- Emergency Helpline -->
                     <div class="helpline-bar">
                         <div class="helpline-item">
-                            <span class="helpline-label">हेल्पलाइन (Toll Free):</span>
+                            <span class="helpline-label" id="lbl-helpline-tag">{{ scheme.texts.helpline_label }}</span>
                             <a href="tel:18002666696" class="helpline-link">📞 1800-266-6696</a>
                         </div>
                         <div class="helpline-item emergency">
-                            <span class="helpline-label">गैस रिसाव (Emergency):</span>
+                            <span class="helpline-label emergency" id="lbl-emergency-tag">{{ scheme.texts.emergency_label }}</span>
                             <a href="tel:1906" class="helpline-link">🚨 1906</a>
                         </div>
                     </div>
@@ -397,12 +485,18 @@
                 <div class="mic-status-label" id="mic-status-label">{{ scheme.texts.mic_tap }}</div>
             </div>
 
-            <!-- Quick Voice Helper Chips -->
+            <!-- Quick Voice Helper Chips (Localized for 11 Languages) -->
             <div class="quick-chips" id="quick-chips">
+                {% if scheme.texts.quick_chips %}
+                {% for qc in scheme.texts.quick_chips %}
+                <button class="chip" data-query="{{ qc.query }}">{{ qc.label }}</button>
+                {% endfor %}
+                {% else %}
                 <button class="chip" data-query="गैस कनेक्शन चाहिए">"गैस चाहिए"</button>
                 <button class="chip" data-query="कौन से कागज़ लगेंगे">"कागज़ात बताएं"</button>
                 <button class="chip" data-query="कितना पैसा लगेगा">"क्या यह मुफ़्त है?"</button>
                 <button class="chip" data-query="कहाँ जाना होगा">"कहाँ जाना है?"</button>
+                {% endif %}
             </div>
         </footer>
     </div>

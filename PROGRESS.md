@@ -59,8 +59,19 @@ Project tracking across all 8 build steps (Steps 0 to 8).
     - Automated project size validation strictly enforcing the < 10 MB constraint (actual: ~195 KB).
 
 - [x] **Step 8: Production Readiness & Hackathon Packaging**
-  - Confirmed total project size is strictly under the 10 MB limit (exact size: **202,185 bytes / ~197.45 KB**, less than 2% of the 10 MB allowance).
+  - Confirmed total project size is strictly under the 10 MB limit (exact size: **204,148 bytes / ~199.36 KB**, less than 2% of the 10 MB allowance).
   - Executed end-to-end smoke test validating clean Flask startup, zero-fail offline mode, dynamic `PORT` binding, and REST APIs.
   - Verified clean repository state: `.env`, `.venv`, and `__pycache__` safely ignored via `.gitignore`.
   - Updated comprehensive documentation, architecture overview, and API reference in `README.md`.
   - Fully verified zero-breakage multilingual experience across all 11 supported Indian languages.
+
+- [x] **Bug Fix & Hardening: Multilingual Gemini Translation & Auth Resilience**
+  - **Issue Diagnosed**: Non-English translations and AI answers were silently falling back to English.
+    - API Key format (`AQ.A...`) was verified valid (no 401 auth rejection).
+    - Default SDK endpoint (`v1beta`) with `gemini-3.8-flash` suffered `ServerError: 503 UNAVAILABLE` (Google backend demand spike).
+    - Under `v1alpha`, `gemini-3.8-flash` functioned but was capped by a 20 request/day free-tier quota (`429 RESOURCE_EXHAUSTED`).
+  - **Resolution**:
+    - Configured explicit `types.HttpOptions(api_version="v1alpha")` (configurable via `GEMINI_API_VERSION`) in `_get_genai_client()` and `GeminiClient`.
+    - Added resilient model failover (`_generate_content_with_resilience`): tries primary model (`gemini-3.5-flash` / `GEMINI_MODEL`) and cascades through fallback candidates (`gemini-3-flash-preview`, `gemini-3.1-flash-lite`) before resorting to safe English fallback.
+    - Verified dynamic translations in native Indian scripts (Hindi, Tamil, Telugu, etc.) and grounded AI Q&A without falling back to English.
+    - Removed temporary debug prints, restored clean logging, and confirmed all 18 unit/integration tests pass.

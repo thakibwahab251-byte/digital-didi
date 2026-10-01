@@ -42,7 +42,9 @@ LANGUAGE_MAP = {
     "english": "English"
 }
 
-MODEL_NAME = "gemini-3.8-flash"
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
+API_VERSION = os.getenv("GEMINI_API_VERSION", "v1alpha")
+FALLBACK_MODELS = ["gemini-3.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-lite"]
 
 
 def _get_genai_client():
@@ -56,10 +58,46 @@ def _get_genai_client():
         return None
     try:
         from google import genai
-        return genai.Client(api_key=api_key)
+        from google.genai import types
+        http_options = types.HttpOptions(api_version=API_VERSION)
+        return genai.Client(api_key=api_key, http_options=http_options)
     except Exception as e:
         logger.warning("Could not initialize google-genai Client: %s", e)
         return None
+
+
+def _generate_content_with_resilience(client, prompt):
+    """
+    Executes generate_content trying MODEL_NAME first, and automatically falling
+    back to resilient alternate models (e.g. gemini-3.5-flash) if 503 high-demand
+    or 429 quota exhaustion occurs on the primary model.
+    """
+    models_to_try = [MODEL_NAME]
+    for fb in FALLBACK_MODELS:
+        if fb not in models_to_try:
+            models_to_try.append(fb)
+
+    last_error = None
+    for model_id in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_id,
+                contents=prompt
+            )
+            if response and response.text:
+                return response.text
+        except Exception as err:
+            last_error = err
+            logger.warning(
+                "Gemini generate_content failed for model %s (%s). Trying fallback model if available.",
+                model_id,
+                err
+            )
+            continue
+
+    if last_error:
+        raise last_error
+    return None
 
 
 def _resolve_language_name(target_language):
@@ -143,12 +181,9 @@ English Text:
 Spoken-friendly translation in {lang_resolved} (only the translated text):"""
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt
-        )
-        if response and response.text:
-            cleaned = response.text.strip()
+        raw_text = _generate_content_with_resilience(client, prompt)
+        if raw_text:
+            cleaned = raw_text.strip()
             if cleaned.startswith('"') and cleaned.endswith('"') and len(cleaned) > 2:
                 cleaned = cleaned[1:-1].strip()
             return cleaned
@@ -221,22 +256,14 @@ INSTRUCTIONS:
 """
 
     try:
-        response = client.models.generate_content(
-            model=MODEL_NAME,
-            contents=prompt
-        )
-        if response and response.text:
-            cleaned = response.text.strip()
+        raw_text = _generate_content_with_resilience(client, prompt)
+        if raw_text:
+            cleaned = raw_text.strip()
             if cleaned.startswith('"') and cleaned.endswith('"') and len(cleaned) > 2:
                 cleaned = cleaned[1:-1].strip()
             return cleaned
         return fallback_text
-        except Exception as err:
-        print("=" * 60)
-        print("GEMINI ERROR DETAILS:")
-        print(f"Error type: {type(err).__name__}")
-        print(f"Error message: {err}")
-        print("=" * 60)
+    except Exception as err:
         logger.error("Gemini answer_question error: %s. Falling back to English text.", err)
         return fallback_text
 
@@ -262,8 +289,11 @@ class GeminiClient:
         if self.api_key:
             try:
                 from google import genai
-                self.client = genai.Client(api_key=self.api_key)
-                logger.info("Google GenAI client successfully initialized with model: %s", MODEL_NAME)
+                from google.genai import types
+                api_version = os.getenv("GEMINI_API_VERSION", "v1alpha")
+                http_options = types.HttpOptions(api_version=api_version)
+                self.client = genai.Client(api_key=self.api_key, http_options=http_options)
+                logger.info("Google GenAI client successfully initialized with model: %s (api_version=%s)", MODEL_NAME, api_version)
             except Exception as e:
                 logger.warning("Could not initialize Google GenAI client: %s. Using fallback mode.", e)
                 self.client = None
