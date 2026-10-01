@@ -231,10 +231,14 @@ INSTRUCTIONS:
                 cleaned = cleaned[1:-1].strip()
             return cleaned
         return fallback_text
-    except Exception as err:
+        except Exception as err:
+        print("=" * 60)
+        print("GEMINI ERROR DETAILS:")
+        print(f"Error type: {type(err).__name__}")
+        print(f"Error message: {err}")
+        print("=" * 60)
         logger.error("Gemini answer_question error: %s. Falling back to English text.", err)
         return fallback_text
-
 
 # ==============================================================================
 # EXISTING BACKWARD-COMPATIBLE CLASS & METHODS

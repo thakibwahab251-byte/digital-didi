@@ -1083,3 +1083,10 @@ body {
         height: 68px;
     }
 }
+
+/* 1-Click Automated Walkthrough Demo Focus Pulse */
+.demo-focus {
+    box-shadow: 0 0 0 4px #FF9800, 0 0 20px rgba(255, 152, 0, 0.45) !important;
+    transform: scale(1.03) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}

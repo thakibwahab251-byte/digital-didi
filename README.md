@@ -51,21 +51,38 @@
 
 ```
 digital-didi/
-├── app.py              # Flask server, dynamic PORT binding, multilingual endpoints
-├── scheme_data.py      # 11-language scheme translations & walkthrough scripts
-├── gemini_client.py    # Multilingual Gemini 3.8 Flash client with Indic fallbacks
+├── app.py              # Flask server, dynamic PORT binding, translation & Q&A endpoints
+├── scheme_data.py      # Hardcoded PMUY facts (SSOT), 11-language UI strings & walkthrough
+├── gemini_client.py    # Multilingual Gemini 3.8 Flash client with safe English fallbacks
 ├── templates/
-│   └── index.html      # Multilingual layout with icon/flag language ribbon
+│   └── index.html      # Accessible layout with 11-language native-script ribbon
 ├── static/
 │   ├── style.css       # Clean responsive Indian civic styling (< 25 KB)
-│   └── app.js          # Speech recognition, synthesis & language switching logic
+│   └── app.js          # Speech recognition, speech synthesis & Web Audio earcons
 ├── tests/
-│   └── test_app.py     # 9 unit & integration tests including 10 MB size verification
+│   └── test_app.py     # 18 unit & integration tests including 10 MB limit verification
 ├── requirements.txt    # flask, python-dotenv, gunicorn, google-genai
 ├── .env.example        # Configuration template
 ├── .gitignore          # Ignores .env, __pycache__, .venv
-└── README.md           # Documentation
+└── README.md           # Project documentation & hackathon submission guide
 ```
+
+---
+
+## 📡 REST API Reference
+
+| Endpoint | Method | Description |
+| :--- | :--- | :--- |
+| `/` | `GET` | Main accessible visual & voice interface (`?lang=hi`) |
+| `/api/languages` | `GET` | List of all 11 supported Indian languages |
+| `/api/scheme` | `GET` | Localized PMUY scheme metadata, criteria, and benefits |
+| `/api/step/<num>` | `GET/POST` | Official PMUY step guidance with on-demand Indic translation |
+| `/api/translate` | `POST` | Translates English scheme instructions into any supported Indic language |
+| `/api/ask` | `POST` | Grounded Q&A strictly using verified PMUY facts via Gemini |
+| `/api/eligibility` | `POST` | Validates household eligibility (age, prior connection, BPL/ration card) |
+| `/api/chat` | `POST` | Natural conversational voice query handling with Didi persona |
+| `/api/walkthrough` | `GET` | Localized 1-click step-by-step automated demo script |
+| `/health` | `GET` | Cloud health check endpoint |
 
 ---
 
@@ -91,6 +108,6 @@ Open [http://localhost:5000](http://localhost:5000) in Chrome, Edge, or a mobile
 
 ### 4. Run Test Suite
 ```bash
-python tests/test_app.py
+python -m unittest tests/test_app.py
 ```
-*(Runs all 9 tests, verifying 11-language endpoints, Gemini resilience, and the 10 MB limit)*.
+*(Runs all 18 automated tests, verifying 11-language endpoints, Gemini resilience, safe English fallbacks, and the < 10 MB project limit)*.

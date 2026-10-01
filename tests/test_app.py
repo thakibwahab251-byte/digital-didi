@@ -134,6 +134,10 @@ class DigitalDidiTestCase(unittest.TestCase):
         en_res = translate_step(sample_text, "English")
         self.assertEqual(en_res, sample_text)
 
+        # Translation of empty text returns empty string
+        empty_res = translate_step("", "Hindi")
+        self.assertEqual(empty_res, "")
+
         # Translation into Hindi returns a non-empty string
         hi_res = translate_step(sample_text, "Hindi")
         self.assertIsInstance(hi_res, str)
@@ -144,6 +148,13 @@ class DigitalDidiTestCase(unittest.TestCase):
             fallback_res = translate_step(sample_text, "Tamil")
             self.assertEqual(fallback_res, sample_text)
 
+        # Fallback when client raises an unexpected Exception (500, network error)
+        mock_broken_client = unittest.mock.MagicMock()
+        mock_broken_client.models.generate_content.side_effect = RuntimeError("Network timeout to Gemini API")
+        with patch("gemini_client._get_genai_client", return_value=mock_broken_client):
+            err_res = translate_step(sample_text, "Telugu")
+            self.assertEqual(err_res, sample_text)
+
     def test_answer_question_with_fallback(self):
         """Tests answer_question grounds answers in English facts with safe fallback."""
         # Grounded query about stove
@@ -151,10 +162,21 @@ class DigitalDidiTestCase(unittest.TestCase):
         self.assertIsInstance(ans, str)
         self.assertGreater(len(ans), 0)
 
+        # Empty question returns default fallback
+        empty_q_ans = answer_question(PMUY_SCHEME_FACTS, "", "Hindi")
+        self.assertIn("Pradhan Mantri Ujjwala Yojana", empty_q_ans)
+
         # Fallback when client is None
         with patch("gemini_client._get_genai_client", return_value=None):
             fallback_ans = answer_question(PMUY_SCHEME_FACTS, "How do I apply?", "Telugu")
             self.assertIn("Pradhan Mantri Ujjwala Yojana", fallback_ans)
+
+        # Fallback when client raises an unexpected Exception
+        mock_broken_client = unittest.mock.MagicMock()
+        mock_broken_client.models.generate_content.side_effect = ConnectionError("Connection refused by Gemini API")
+        with patch("gemini_client._get_genai_client", return_value=mock_broken_client):
+            err_ans = answer_question(PMUY_SCHEME_FACTS, "Is there an application fee?", "Marathi")
+            self.assertIn("Pradhan Mantri Ujjwala Yojana", err_ans)
 
     def test_home_page(self):
         """Verifies that the index page loads with Digital Didi branding and language picker."""
