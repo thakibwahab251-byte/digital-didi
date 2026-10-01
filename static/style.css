@@ -1,0 +1,1085 @@
+/* ==========================================================================
+   Digital Didi - Clean, Accessible, Multilingual Stylesheet
+   Designed for first-time rural women users with zero prior digital literacy.
+   Supports 11 major Indian languages. Pure Vanilla CSS (< 25 KB).
+   ========================================================================== */
+
+:root {
+    --primary: #E65100;
+    --primary-light: #FF833A;
+    --primary-dark: #AC1900;
+    --primary-bg: #FFF7ED;
+
+    --success: #2E7D32;
+    --success-light: #60AD5E;
+    --success-dark: #005005;
+    --success-bg: #E8F5E9;
+
+    --danger: #C62828;
+    --danger-light: #FF5F52;
+    --danger-bg: #FFEBEE;
+
+    --accent-blue: #1565C0;
+    --accent-gold: #F57F17;
+
+    --text-primary: #1A1A1A;
+    --text-secondary: #4A4A4A;
+    --text-muted: #757575;
+
+    --surface: #FFFFFF;
+    --surface-elevated: #FFFFFF;
+    --bg-page: #FBF8F3;
+
+    --border-subtle: #E0D7CC;
+    --border-strong: #BDBDBD;
+
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.14);
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-full: 9999px;
+
+    --font-indic: 'Hind', 'Noto Sans Devanagari', 'Noto Sans Tamil', 'Noto Sans Telugu', 'Noto Sans Bengali', 'Noto Sans Gujarati', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Oriya', 'Mukta Mahee', -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    font-family: var(--font-indic);
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-size: 18px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+}
+
+/* Base Responsive Container */
+.app-container {
+    width: 100%;
+    max-width: 640px;
+    min-height: 100vh;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.08);
+    position: relative;
+}
+
+/* ==========================================================================
+   Header Bar
+   ========================================================================== */
+.app-header {
+    background: linear-gradient(135deg, #FF6F00, #E65100);
+    color: white;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 110;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.brand-symbol {
+    width: 42px;
+    height: 42px;
+    background: white;
+    border-radius: 50%;
+    padding: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.logo-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.brand-title {
+    font-size: 1.45rem;
+    font-weight: 900;
+    line-height: 1.1;
+}
+
+.brand-subtitle {
+    font-size: 0.8rem;
+    opacity: 0.92;
+    display: block;
+    font-weight: 500;
+}
+
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-demo {
+    background: #FFE082;
+    color: #4E2C00;
+    border: none;
+    border-radius: var(--radius-full);
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.btn-demo:hover {
+    background: #FFD54F;
+    transform: scale(1.02);
+}
+
+.btn-sound-control {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.82rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-sound-control.muted {
+    background: rgba(0, 0, 0, 0.25);
+    opacity: 0.8;
+}
+
+/* ==========================================================================
+   Flag / Script Icon Language Picker Ribbon
+   ========================================================================== */
+.language-ribbon {
+    background: #FFF3E0;
+    border-bottom: 2px solid #FFE0B2;
+    padding: 8px 10px;
+    position: sticky;
+    top: 66px;
+    z-index: 105;
+}
+
+.lang-scroll-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    padding: 2px 4px 6px;
+}
+
+.lang-scroll-track::-webkit-scrollbar {
+    height: 4px;
+}
+
+.lang-scroll-track::-webkit-scrollbar-thumb {
+    background: #FFB74D;
+    border-radius: 4px;
+}
+
+.lang-btn {
+    background: white;
+    border: 1.5px solid #FFCC80;
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, border-color 0.2s ease, background 0.2s ease;
+    flex-shrink: 0;
+}
+
+.lang-btn:hover {
+    border-color: #E65100;
+    transform: translateY(-1px);
+}
+
+.lang-btn.active {
+    background: linear-gradient(135deg, #FF6F00, #E65100);
+    color: white;
+    border-color: #BF360C;
+    box-shadow: 0 2px 10px rgba(230, 81, 0, 0.35);
+}
+
+.lang-flag {
+    font-size: 1.15rem;
+}
+
+.lang-native {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Sister Didi Speech Banner (Voice Feedback)
+   ========================================================================== */
+.speech-banner {
+    background: #FFF8E1;
+    border-bottom: 2px solid #FFE082;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.didi-avatar {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.avatar-ring {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: #FFE0B2;
+    border: 3px solid #FF9800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-emoji {
+    font-size: 1.8rem;
+}
+
+.speaking-indicator {
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 2px 4px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.speaking-indicator span {
+    width: 3px;
+    height: 10px;
+    background: #E65100;
+    border-radius: 2px;
+    animation: wave-equalizer 0.8s ease-in-out infinite alternate;
+}
+
+.speaking-indicator span:nth-child(2) {
+    animation-delay: 0.2s;
+    height: 14px;
+}
+
+.speaking-indicator span:nth-child(3) {
+    animation-delay: 0.4s;
+    height: 8px;
+}
+
+.speaking-indicator span:nth-child(4) {
+    animation-delay: 0.1s;
+    height: 12px;
+}
+
+@keyframes wave-equalizer {
+    0% {
+        height: 4px;
+    }
+
+    100% {
+        height: 14px;
+    }
+}
+
+.didi-dialogue-wrap {
+    flex: 1;
+}
+
+.didi-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.didi-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #E65100;
+}
+
+.btn-replay-mini {
+    background: transparent;
+    border: 1px solid #FFB74D;
+    color: #E65100;
+    border-radius: var(--radius-full);
+    padding: 2px 10px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.didi-message {
+    font-size: 1.15rem;
+    line-height: 1.4;
+    color: #2E1B00;
+    font-weight: 700;
+}
+
+/* ==========================================================================
+   Main Stage & Stage Views
+   ========================================================================== */
+.main-stage {
+    flex: 1;
+    padding: 18px 16px 145px;
+    overflow-y: auto;
+}
+
+.stage-view {
+    display: none;
+    animation: fadeIn 0.25s ease forwards;
+}
+
+.stage-view.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stage 1: Welcome & Benefits */
+.hero-card {
+    text-align: center;
+}
+
+.scheme-badge-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.gov-tag {
+    background: #E8EAF6;
+    color: #283593;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.free-tag {
+    background: #E8F5E9;
+    color: #1B5E20;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 0.85rem;
+    font-weight: 900;
+    border: 1px solid #A5D6A7;
+}
+
+.scheme-heading {
+    font-size: 1.55rem;
+    font-weight: 900;
+    color: #B71C1C;
+    margin-bottom: 6px;
+    line-height: 1.25;
+}
+
+.scheme-subtext {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.benefit-box {
+    background: var(--surface-elevated);
+    border: 2px solid #FFE0B2;
+    border-radius: var(--radius-md);
+    padding: 12px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease;
+}
+
+.benefit-icon-wrap {
+    width: 54px;
+    height: 54px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 6px;
+}
+
+.benefit-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.benefit-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    line-height: 1.2;
+}
+
+.benefit-badge {
+    background: #E8F5E9;
+    color: #1B5E20;
+    font-size: 0.78rem;
+    font-weight: 900;
+    padding: 2px 6px;
+    border-radius: var(--radius-full);
+}
+
+/* Big Start Button */
+.btn-giant {
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 1.25rem;
+    font-weight: 900;
+    border-radius: var(--radius-md);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: var(--shadow-md);
+    transition: transform 0.15s ease;
+}
+
+.btn-giant:active {
+    transform: scale(0.98);
+}
+
+.btn-start {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+}
+
+.btn-giant-icon {
+    font-size: 1.4rem;
+}
+
+/* ==========================================================================
+   Question Stages (Stages 2 & 3)
+   ========================================================================== */
+.question-card {
+    text-align: center;
+    background: var(--surface);
+    border: 2px solid #FFE0B2;
+    border-radius: var(--radius-lg);
+    padding: 22px 16px;
+    box-shadow: var(--shadow-md);
+}
+
+.step-counter {
+    display: inline-block;
+    background: #FFF3E0;
+    color: #E65100;
+    font-weight: 900;
+    font-size: 0.95rem;
+    padding: 4px 14px;
+    border-radius: var(--radius-full);
+    margin-bottom: 10px;
+}
+
+.question-visual-icon {
+    margin-bottom: 8px;
+}
+
+.big-emoji {
+    font-size: 2.8rem;
+}
+
+.question-text {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #212121;
+    margin-bottom: 6px;
+    line-height: 1.35;
+}
+
+.question-hint {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 22px;
+}
+
+.answer-buttons-row {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.btn-giant-choice {
+    width: 100%;
+    padding: 16px 14px;
+    border-radius: var(--radius-md);
+    border: 3px solid transparent;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-giant-choice:active {
+    transform: scale(0.98);
+}
+
+.choice-icon {
+    font-size: 2rem;
+    margin-bottom: 2px;
+}
+
+.choice-title {
+    font-size: 1.3rem;
+    font-weight: 900;
+    line-height: 1.2;
+}
+
+.choice-desc {
+    font-size: 0.9rem;
+    opacity: 0.88;
+    margin-top: 2px;
+}
+
+.btn-choice-yes {
+    background: #E8F5E9;
+    border-color: #2E7D32;
+    color: #1B5E20;
+}
+
+.btn-choice-no {
+    background: #FFF3E0;
+    border-color: #E65100;
+    color: #BF360C;
+}
+
+/* ==========================================================================
+   Stage 4: Document Checklist Picture Cards
+   ========================================================================== */
+.congrats-banner {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    box-shadow: var(--shadow-sm);
+}
+
+.celebrate-icon {
+    font-size: 2.2rem;
+}
+
+.congrats-text h3 {
+    font-size: 1.3rem;
+    font-weight: 900;
+}
+
+.congrats-text p {
+    font-size: 0.92rem;
+    opacity: 0.95;
+}
+
+.doc-section-heading {
+    font-size: 1.2rem;
+    font-weight: 900;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.doc-hint-tap {
+    font-size: 0.85rem;
+    color: #E65100;
+    font-weight: 500;
+}
+
+.documents-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.doc-card {
+    background: white;
+    border: 2px solid #E0E0E0;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.15s ease, border-color 0.2s ease;
+}
+
+.doc-card:hover,
+.doc-card:focus {
+    transform: translateY(-2px);
+    border-color: #2E7D32;
+    outline: none;
+}
+
+.doc-badge-pill {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: #E8F5E9;
+    color: #1B5E20;
+    font-size: 0.75rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+}
+
+.doc-visual {
+    height: 65px;
+    border-radius: var(--radius-sm);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+    border: 1px solid #CCC;
+    background: #FAFAFA;
+}
+
+.aadhaar-graphic .card-band.tricolor {
+    height: 8px;
+    background: linear-gradient(to right, #FF9933 33%, #FFFFFF 33%, #FFFFFF 66%, #138808 66%);
+    border-bottom: 1px solid #DDD;
+}
+
+.aadhaar-graphic .card-chip {
+    width: 14px;
+    height: 10px;
+    background: #FFE082;
+    border: 1px solid #FFB300;
+    border-radius: 2px;
+    position: absolute;
+    top: 16px;
+    left: 10px;
+}
+
+.aadhaar-graphic .card-avatar {
+    width: 26px;
+    height: 30px;
+    background: #E0E0E0;
+    border-radius: 3px;
+    position: absolute;
+    top: 14px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+}
+
+.card-dummy-lines {
+    position: absolute;
+    left: 32px;
+    top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.card-dummy-lines span {
+    display: block;
+    height: 4px;
+    width: 80px;
+    background: #CFD8DC;
+    border-radius: 2px;
+}
+
+.card-dummy-lines span:nth-child(2) {
+    width: 55px;
+}
+
+.card-logo {
+    position: absolute;
+    bottom: 2px;
+    left: 10px;
+    font-size: 1.1rem;
+}
+
+.ration-graphic .card-band.saffron {
+    height: 10px;
+    background: #FF6F00;
+}
+
+.ration-stamp {
+    position: absolute;
+    top: 16px;
+    right: 10px;
+    font-size: 1.5rem;
+}
+
+.passbook-graphic .card-band.navy {
+    height: 10px;
+    background: #0D47A1;
+}
+
+.passbook-icon {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    font-size: 1.4rem;
+}
+
+.doc-title {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.doc-desc {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.doc-action-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px dashed #E0E0E0;
+    padding-top: 6px;
+}
+
+.audio-listen-tag {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #E65100;
+}
+
+.check-tick {
+    font-size: 0.82rem;
+    font-weight: 900;
+    color: #2E7D32;
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #2E7D32, #1B5E20);
+    color: white;
+}
+
+/* ==========================================================================
+   Stage 5: Where to Go & Helpline
+   ========================================================================== */
+.where-heading {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: #1A1A1A;
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.places-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.place-box {
+    background: white;
+    border: 2px solid #FFE0B2;
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: var(--shadow-sm);
+}
+
+.place-icon-circle {
+    width: 44px;
+    height: 44px;
+    background: #FFF3E0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.place-info h4 {
+    font-size: 1.1rem;
+    font-weight: 900;
+    color: #BF360C;
+    margin-bottom: 3px;
+}
+
+.place-info p {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+}
+
+.safety-alert {
+    background: #FFEBEE;
+    border-left: 5px solid #C62828;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.alert-icon {
+    font-size: 1.6rem;
+}
+
+.alert-text {
+    font-size: 0.95rem;
+    color: #B71C1C;
+    line-height: 1.4;
+    font-weight: 700;
+}
+
+.helpline-bar {
+    background: #ECEFF1;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.helpline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.helpline-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.helpline-link {
+    font-weight: 900;
+    color: #1565C0;
+    text-decoration: none;
+    font-size: 1rem;
+}
+
+.helpline-item.emergency .helpline-link {
+    color: #C62828;
+}
+
+.btn-outline {
+    background: white;
+    border: 2px solid #E65100;
+    color: #E65100;
+}
+
+/* ==========================================================================
+   Bottom Persistent Voice Controls Bar
+   ========================================================================== */
+.app-footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    max-width: 640px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid #E0D7CC;
+    padding: 8px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+}
+
+.voice-controls-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 6px;
+    position: relative;
+}
+
+.btn-mic {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: none;
+    background: linear-gradient(135deg, #FF6F00, #E65100);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 20px rgba(230, 81, 0, 0.4);
+    position: relative;
+    transition: transform 0.15s ease;
+}
+
+.btn-mic:active {
+    transform: scale(0.94);
+}
+
+.btn-mic.listening {
+    background: linear-gradient(135deg, #D32F2F, #B71C1C);
+    box-shadow: 0 6px 25px rgba(211, 47, 47, 0.6);
+    animation: mic-listening-pulse 1.2s infinite;
+}
+
+.mic-inner {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mic-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.mic-ripple-ring {
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    border: 2px solid rgba(230, 81, 0, 0.4);
+    animation: ripple 2s infinite ease-out;
+}
+
+@keyframes ripple {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1.35);
+        opacity: 0;
+    }
+}
+
+@keyframes mic-listening-pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.mic-status-label {
+    font-size: 0.92rem;
+    font-weight: 900;
+    color: #E65100;
+    margin-top: 3px;
+}
+
+.quick-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    width: 100%;
+    padding: 2px 2px;
+    scrollbar-width: none;
+}
+
+.quick-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.chip {
+    white-space: nowrap;
+    background: #FFF3E0;
+    border: 1px solid #FFE0B2;
+    color: #BF360C;
+    border-radius: var(--radius-full);
+    padding: 5px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 16px;
+    }
+
+    .brand-title {
+        font-size: 1.25rem;
+    }
+
+    .btn-mic {
+        width: 68px;
+        height: 68px;
+    }
+}

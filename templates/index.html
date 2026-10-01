@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="{{ scheme.lang }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ scheme.texts.app_title }} | Digital Didi - ग्रामीण महिलाओं के लिए मुफ़्त गैस योजना साथी</title>
+    <meta name="description"
+        content="डिजिटल दीदी (Digital Didi) - 11 भारतीय भाषाओं में बिना किसी तकनीकी ज्ञान और अंग्रेज़ी के, केवल आवाज़ और बड़े चित्रों द्वारा मुफ़्त गैस कनेक्शन का लाभ पाएं।">
+    <!-- Google Fonts for multilingual Devanagari, Dravidian, and Indic scripts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hind:wght@400;600;700&family=Noto+Sans+Bengali:wght@400;700&family=Noto+Sans+Devanagari:wght@400;700&family=Noto+Sans+Gujarati:wght@400;700&family=Noto+Sans+Kannada:wght@400;700&family=Noto+Sans+Malayalam:wght@400;700&family=Noto+Sans+Oriya:wght@400;700&family=Noto+Sans+Tamil:wght@400;700&family=Noto+Sans+Telugu:wght@400;700&family=Noto+Sans:wght@400;700&family=Mukta+Mahee:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="app-container" id="app-container">
+        <!-- Top App Bar -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-symbol" aria-hidden="true">
+                    <svg viewBox="0 0 40 40" class="logo-svg">
+                        <circle cx="20" cy="20" r="18" fill="#FF7722" />
+                        <!-- Flame / Diya Symbol -->
+                        <path
+                            d="M20 7 C20 7, 27 15, 27 23 C27 27.5, 23.5 31, 20 31 C16.5 31, 13 27.5, 13 23 C13 15, 20 7, 20 7 Z"
+                            fill="#FFE066" />
+                        <path
+                            d="M20 14 C20 14, 24 19, 24 24 C24 26.5, 22 28.5, 20 28.5 C18 28.5, 16 26.5, 16 24 C16 19, 20 14, 20 14 Z"
+                            fill="#FF4400" />
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1 class="brand-title" id="lbl-app-title">{{ scheme.texts.app_title }}</h1>
+                    <span class="brand-subtitle" id="lbl-app-subtitle">{{ scheme.texts.app_subtitle }}</span>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <!-- 1-Click Walkthrough Demo Button -->
+                <button id="btn-walkthrough" class="btn-demo" title="1-Click Demo">
+                    <span class="demo-icon">⚡</span>
+                    <span class="demo-text" id="lbl-btn-demo">{{ scheme.texts.btn_demo }}</span>
+                </button>
+                <!-- Voice Narration Toggle -->
+                <button id="btn-sound-toggle" class="btn-sound-control active" title="Sound Toggle"
+                    aria-label="ध्वनि नियंत्रण">
+                    <span id="sound-icon" class="sound-icon">🔊</span>
+                    <span class="sound-label" id="lbl-sound-status">आवाज़ चालू</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Flag / Script Icon Language Picker Ribbon -->
+        <nav class="language-ribbon" aria-label="भाषा चुनें / Select Language">
+            <div class="lang-scroll-track" id="lang-track">
+                {% for lang in languages %}
+                <button class="lang-btn {% if lang.code == scheme.lang %}active{% endif %}" data-lang="{{ lang.code }}"
+                    data-speech="{{ lang.speech_code }}" title="{{ lang.name }}">
+                    <span class="lang-flag">{{ lang.flag }}</span>
+                    <span class="lang-native">{{ lang.native }}</span>
+                </button>
+                {% endfor %}
+            </div>
+        </nav>
+
+        <!-- Sister Didi's Speech Bubble & Status -->
+        <section class="speech-banner" id="speech-banner" aria-live="polite">
+            <div class="didi-avatar">
+                <div class="avatar-ring">
+                    <span class="avatar-emoji" role="img" aria-label="डिजिटल दीदी">👩🏽‍🌾</span>
+                </div>
+                <div class="speaking-indicator" id="speaking-wave" style="display: none;">
+                    <span></span><span></span><span></span><span></span>
+                </div>
+            </div>
+            <div class="didi-dialogue-wrap">
+                <div class="didi-tag">
+                    <span class="didi-name" id="lbl-didi-speaking">दीदी बोल रही हैं:</span>
+                    <button id="btn-replay-audio" class="btn-replay-mini" title="दोबारा सुनें"
+                        aria-label="आवाज़ दोबारा सुनें">
+                        🔊 दोबारा सुनें
+                    </button>
+                </div>
+                <div class="didi-message" id="didi-message">
+                    {{ scheme.texts.didi_greeting }}
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dynamic Stage Cards Area -->
+        <main class="main-stage" id="main-stage">
+
+            <!-- STAGE 1: Welcome & Scheme Hero -->
+            <div class="stage-view active" id="stage-welcome">
+                <div class="hero-card">
+                    <div class="scheme-badge-row">
+                        <span class="gov-tag">भारत सरकार • Govt of India</span>
+                        <span class="free-tag">₹0 मुफ़्त</span>
+                    </div>
+                    <h2 class="scheme-heading" id="lbl-scheme-name">{{ scheme.texts.scheme_name }}</h2>
+                    <p class="scheme-subtext" id="lbl-scheme-tagline">{{ scheme.texts.scheme_tagline }}</p>
+
+                    <!-- Big Pictorial Benefits Grid -->
+                    <div class="benefits-grid">
+                        <div class="benefit-box">
+                            <div class="benefit-icon-wrap cylinder-glow">
+                                <svg viewBox="0 0 60 70" class="benefit-svg" aria-hidden="true">
+                                    <rect x="20" y="5" width="20" height="8" rx="3" fill="#D32F2F" />
+                                    <rect x="18" y="13" width="24" height="6" rx="2" fill="#888" />
+                                    <path d="M12 22 C12 18, 48 18, 48 22 L48 58 C48 64, 12 64, 12 58 Z"
+                                        fill="#E53935" />
+                                    <rect x="14" y="60" width="32" height="6" rx="3" fill="#B71C1C" />
+                                    <circle cx="30" cy="38" r="8" fill="#FFE082" />
+                                    <text x="30" y="42" font-size="10" font-weight="bold" fill="#B71C1C"
+                                        text-anchor="middle">LPG</text>
+                                </svg>
+                            </div>
+                            <span class="benefit-label" id="lbl-benefit-1-title">{{ scheme.texts.benefits[0].title
+                                }}</span>
+                            <span class="benefit-badge" id="lbl-benefit-1-badge">{{ scheme.texts.benefits[0].badge
+                                }}</span>
+                        </div>
+
+                        <div class="benefit-box">
+                            <div class="benefit-icon-wrap stove-glow">
+                                <svg viewBox="0 0 64 64" class="benefit-svg" aria-hidden="true">
+                                    <rect x="6" y="28" width="52" height="18" rx="5" fill="#37474F" />
+                                    <circle cx="20" cy="24" r="8" fill="#90A4AE" />
+                                    <circle cx="44" cy="24" r="8" fill="#90A4AE" />
+                                    <circle cx="20" cy="24" r="4" fill="#FF9800" />
+                                    <circle cx="44" cy="24" r="4" fill="#FF9800" />
+                                    <circle cx="20" cy="37" r="3.5" fill="#ECEFF1" />
+                                    <circle cx="44" cy="37" r="3.5" fill="#ECEFF1" />
+                                    <rect x="10" y="46" width="6" height="6" fill="#263238" />
+                                    <rect x="48" y="46" width="6" height="6" fill="#263238" />
+                                </svg>
+                            </div>
+                            <span class="benefit-label" id="lbl-benefit-2-title">{{ scheme.texts.benefits[1].title
+                                }}</span>
+                            <span class="benefit-badge" id="lbl-benefit-2-badge">{{ scheme.texts.benefits[1].badge
+                                }}</span>
+                        </div>
+
+                        <div class="benefit-box">
+                            <div class="benefit-icon-wrap regulator-glow">
+                                <svg viewBox="0 0 64 64" class="benefit-svg" aria-hidden="true">
+                                    <path d="M32 6 L52 14 L52 34 C52 48 32 58 32 58 C32 58 12 48 12 34 L12 14 Z"
+                                        fill="#2E7D32" />
+                                    <text x="32" y="38" font-size="22" font-weight="900" fill="#FFF"
+                                        text-anchor="middle">₹0</text>
+                                </svg>
+                            </div>
+                            <span class="benefit-label" id="lbl-benefit-3-title">{{ scheme.texts.benefits[2].title
+                                }}</span>
+                            <span class="benefit-badge" id="lbl-benefit-3-badge">{{ scheme.texts.benefits[2].badge
+                                }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Direct Call to Action button -->
+                    <button id="btn-start-check" class="btn-giant btn-start">
+                        <span class="btn-giant-icon">👉</span>
+                        <span class="btn-giant-text" id="lbl-btn-start">{{ scheme.texts.btn_start }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STAGE 2: Question 1 - Existing Connection -->
+            <div class="stage-view" id="stage-question-existing">
+                <div class="question-card">
+                    <div class="step-counter">1 / 2</div>
+                    <div class="question-visual-icon">
+                        <span class="big-emoji">🔥</span>
+                    </div>
+                    <h2 class="question-text" id="lbl-q1-text">{{ scheme.texts.q1_text }}</h2>
+                    <p class="question-hint" id="lbl-q1-hint">{{ scheme.texts.q1_hint }}</p>
+
+                    <div class="answer-buttons-row">
+                        <!-- Big NO button (Eligible path) -->
+                        <button id="btn-existing-no" class="btn-giant-choice btn-choice-no" data-choice="no">
+                            <div class="choice-icon">❌</div>
+                            <div class="choice-title" id="lbl-q1-no">{{ scheme.texts.q1_no }}</div>
+                            <div class="choice-desc" id="lbl-q1-no-desc">{{ scheme.texts.q1_no_desc }}</div>
+                        </button>
+
+                        <!-- Big YES button -->
+                        <button id="btn-existing-yes" class="btn-giant-choice btn-choice-yes" data-choice="yes">
+                            <div class="choice-icon">✔️</div>
+                            <div class="choice-title" id="lbl-q1-yes">{{ scheme.texts.q1_yes }}</div>
+                            <div class="choice-desc" id="lbl-q1-yes-desc">{{ scheme.texts.q1_yes_desc }}</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 3: Question 2 - Ration Card -->
+            <div class="stage-view" id="stage-question-ration">
+                <div class="question-card">
+                    <div class="step-counter">2 / 2</div>
+                    <div class="question-visual-icon">
+                        <span class="big-emoji">📜</span>
+                    </div>
+                    <h2 class="question-text" id="lbl-q2-text">{{ scheme.texts.q2_text }}</h2>
+                    <p class="question-hint" id="lbl-q2-hint">{{ scheme.texts.q2_hint }}</p>
+
+                    <div class="answer-buttons-row">
+                        <!-- Big YES button (Eligible path) -->
+                        <button id="btn-ration-yes" class="btn-giant-choice btn-choice-yes" data-choice="yes">
+                            <div class="choice-icon">✔️</div>
+                            <div class="choice-title" id="lbl-q2-yes">{{ scheme.texts.q2_yes }}</div>
+                            <div class="choice-desc" id="lbl-q2-yes-desc">{{ scheme.texts.q2_yes_desc }}</div>
+                        </button>
+
+                        <!-- Big NO button -->
+                        <button id="btn-ration-no" class="btn-giant-choice btn-choice-no" data-choice="no">
+                            <div class="choice-icon">❌</div>
+                            <div class="choice-title" id="lbl-q2-no">{{ scheme.texts.q2_no }}</div>
+                            <div class="choice-desc" id="lbl-q2-no-desc">{{ scheme.texts.q2_no_desc }}</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 4: Success & Documents Checklist -->
+            <div class="stage-view" id="stage-documents">
+                <div class="success-card">
+                    <div class="congrats-banner">
+                        <span class="celebrate-icon">🎉</span>
+                        <div class="congrats-text">
+                            <h3 id="lbl-congrats-title">{{ scheme.texts.congrats_title }}</h3>
+                            <p id="lbl-congrats-desc">{{ scheme.texts.congrats_desc }}</p>
+                        </div>
+                    </div>
+
+                    <h3 class="doc-section-heading">
+                        <span id="lbl-docs-heading">{{ scheme.texts.docs_heading }}</span>
+                        <small class="doc-hint-tap" id="lbl-docs-hint">{{ scheme.texts.docs_hint }}</small>
+                    </h3>
+
+                    <!-- 3 Giant Document Picture Cards -->
+                    <div class="documents-grid" id="documents-grid">
+                        <!-- Aadhaar Card -->
+                        <div class="doc-card" id="card-aadhaar" data-doc="aadhaar" tabindex="0" role="button">
+                            <div class="doc-badge-pill">1</div>
+                            <div class="doc-visual aadhaar-graphic">
+                                <div class="card-band tricolor"></div>
+                                <div class="card-chip"></div>
+                                <div class="card-avatar">👤</div>
+                                <div class="card-dummy-lines">
+                                    <span></span><span></span>
+                                </div>
+                                <div class="card-logo">🪪</div>
+                            </div>
+                            <div class="doc-title" id="lbl-doc-aadhaar-title">{{ scheme.texts.doc_aadhaar_title }}</div>
+                            <div class="doc-desc" id="lbl-doc-aadhaar-desc">{{ scheme.texts.doc_aadhaar_desc }}</div>
+                            <div class="doc-action-strip">
+                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
+                                <span class="check-tick">✔️ तैयार रखें</span>
+                            </div>
+                        </div>
+
+                        <!-- Ration Card -->
+                        <div class="doc-card" id="card-ration" data-doc="ration_card" tabindex="0" role="button">
+                            <div class="doc-badge-pill">2</div>
+                            <div class="doc-visual ration-graphic">
+                                <div class="card-band saffron"></div>
+                                <div class="ration-stamp">📜</div>
+                                <div class="card-dummy-lines">
+                                    <span></span><span></span><span></span>
+                                </div>
+                                <div class="card-logo">🌾</div>
+                            </div>
+                            <div class="doc-title" id="lbl-doc-ration-title">{{ scheme.texts.doc_ration_title }}</div>
+                            <div class="doc-desc" id="lbl-doc-ration-desc">{{ scheme.texts.doc_ration_desc }}</div>
+                            <div class="doc-action-strip">
+                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
+                                <span class="check-tick">✔️ तैयार रखें</span>
+                            </div>
+                        </div>
+
+                        <!-- Bank Passbook -->
+                        <div class="doc-card" id="card-passbook" data-doc="bank_passbook" tabindex="0" role="button">
+                            <div class="doc-badge-pill">3</div>
+                            <div class="doc-visual passbook-graphic">
+                                <div class="card-band navy"></div>
+                                <div class="passbook-icon">🏦</div>
+                                <div class="card-dummy-lines">
+                                    <span></span><span></span>
+                                </div>
+                                <div class="card-logo">₹</div>
+                            </div>
+                            <div class="doc-title" id="lbl-doc-passbook-title">{{ scheme.texts.doc_passbook_title }}
+                            </div>
+                            <div class="doc-desc" id="lbl-doc-passbook-desc">{{ scheme.texts.doc_passbook_desc }}</div>
+                            <div class="doc-action-strip">
+                                <span class="audio-listen-tag">🔊 नाम सुनें</span>
+                                <span class="check-tick">✔️ तैयार रखें</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="next-step-strip">
+                        <button id="btn-to-where" class="btn-giant btn-success">
+                            <span id="lbl-btn-to-where">{{ scheme.texts.btn_to_where }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 5: Where to Go & Safety Helpline -->
+            <div class="stage-view" id="stage-where-to-go">
+                <div class="where-card">
+                    <h2 class="where-heading" id="lbl-where-title">{{ scheme.texts.where_title }}</h2>
+
+                    <div class="places-grid">
+                        <div class="place-box agency-box">
+                            <div class="place-icon-circle">🏢</div>
+                            <div class="place-info">
+                                <h4 id="lbl-where-agency-title">{{ scheme.texts.where_agency_title }}</h4>
+                                <p id="lbl-where-agency-desc">{{ scheme.texts.where_agency_desc }}</p>
+                            </div>
+                        </div>
+
+                        <div class="place-box csc-box">
+                            <div class="place-icon-circle">💻</div>
+                            <div class="place-info">
+                                <h4 id="lbl-where-csc-title">{{ scheme.texts.where_csc_title }}</h4>
+                                <p id="lbl-where-csc-desc">{{ scheme.texts.where_csc_desc }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fraud Warning Box -->
+                    <div class="alert-box safety-alert">
+                        <div class="alert-icon">⚠️</div>
+                        <div class="alert-text" id="lbl-safety-alert">
+                            {{ scheme.texts.safety_alert }}
+                        </div>
+                    </div>
+
+                    <!-- Emergency Helpline -->
+                    <div class="helpline-bar">
+                        <div class="helpline-item">
+                            <span class="helpline-label">हेल्पलाइन (Toll Free):</span>
+                            <a href="tel:18002666696" class="helpline-link">📞 1800-266-6696</a>
+                        </div>
+                        <div class="helpline-item emergency">
+                            <span class="helpline-label">गैस रिसाव (Emergency):</span>
+                            <a href="tel:1906" class="helpline-link">🚨 1906</a>
+                        </div>
+                    </div>
+
+                    <!-- Finish / Reset button -->
+                    <button id="btn-restart" class="btn-giant btn-outline">
+                        <span id="lbl-btn-restart">{{ scheme.texts.btn_restart }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Ineligible Stage -->
+            <div class="stage-view" id="stage-ineligible">
+                <div class="question-card">
+                    <div class="question-visual-icon">
+                        <span class="big-emoji">ℹ️</span>
+                    </div>
+                    <p class="question-hint" id="lbl-ineligible-text"
+                        style="font-size: 1.15rem; color: #333; margin-top: 10px;">
+                        {{ scheme.texts.ineligible_text }}
+                    </p>
+                    <button id="btn-retry-ineligible" class="btn-giant btn-start" style="margin-top: 20px;">
+                        <span id="lbl-btn-retry">{{ scheme.texts.btn_retry }}</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Voice & Interaction Bar -->
+        <footer class="app-footer">
+            <div class="voice-controls-wrap">
+                <!-- Large Central Microphone Button -->
+                <button id="btn-mic" class="btn-mic" title="माइक दबाकर बोलें" aria-label="माइक दबाकर अपनी बात कहें">
+                    <div class="mic-ripple-ring"></div>
+                    <div class="mic-inner">
+                        <svg viewBox="0 0 24 24" class="mic-svg" aria-hidden="true">
+                            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"
+                                fill="currentColor" />
+                            <path
+                                d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"
+                                fill="currentColor" />
+                        </svg>
+                    </div>
+                </button>
+                <div class="mic-status-label" id="mic-status-label">{{ scheme.texts.mic_tap }}</div>
+            </div>
+
+            <!-- Quick Voice Helper Chips -->
+            <div class="quick-chips" id="quick-chips">
+                <button class="chip" data-query="गैस कनेक्शन चाहिए">"गैस चाहिए"</button>
+                <button class="chip" data-query="कौन से कागज़ लगेंगे">"कागज़ात बताएं"</button>
+                <button class="chip" data-query="कितना पैसा लगेगा">"क्या यह मुफ़्त है?"</button>
+                <button class="chip" data-query="कहाँ जाना होगा">"कहाँ जाना है?"</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="/static/app.js"></script>
+</body>
+
+</html>
